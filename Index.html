@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guia PHP para Iniciantes — CRUD Completo</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --surface: #161616;
+    --border: #2a2a2a;
+    --accent: #f5c842;
+    --accent2: #42c8f5;
+    --accent3: #f54278;
+    --text: #e8e8e0;
+    --muted: #888;
+    --code-bg: #1a1a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 0 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 70% 100% at 50% -20%, #f5c84222, transparent);
+    pointer-events: none;
+  }
+  .badge {
+    display: inline-block;
+    font-family: 'Space Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: .25rem .75rem;
+    border-radius: 2px;
+    margin-bottom: 1.2rem;
+  }
+  header h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -.02em;
+  }
+  header h1 span { color: var(--accent); }
+  header p {
+    color: var(--muted);
+    margin-top: .8rem;
+    font-size: 1rem;
+  }
+
+  /* ── LAYOUT ── */
+  .wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+
+  /* ── NAV ÍNDICE ── */
+  nav.toc {
+    margin: 2.5rem 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 1.5rem 2rem;
+  }
+  nav.toc h2 {
+    font-size: .75rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 1rem;
+  }
+  nav.toc ol { padding-left: 1.2rem; }
+  nav.toc li { margin: .35rem 0; }
+  nav.toc a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: .9rem;
+    transition: color .2s;
+  }
+  nav.toc a:hover { color: var(--accent); }
+
+  /* ── SEÇÕES ── */
+  section { margin-top: 3.5rem; }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: .65rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: .5rem;
+  }
+
+  h2 {
+    font-size: 1.7rem;
+    font-weight: 800;
+    letter-spacing: -.02em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: .6rem;
+    margin-bottom: 1.2rem;
+  }
+  h2 .num {
+    color: var(--accent);
+    margin-right: .4rem;
+    font-size: 1rem;
+    font-family: 'Space Mono', monospace;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent2);
+    margin: 1.8rem 0 .6rem;
+  }
+
+  p { margin-bottom: .9rem; color: #ccc; font-size: .97rem; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 4px;
+    padding: 1rem 1.3rem;
+    margin: 1.2rem 0;
+    font-size: .9rem;
+    display: flex;
+    gap: .8rem;
+    align-items: flex-start;
+  }
+  .callout .icon { font-size: 1.2rem; flex-shrink: 0; margin-top: .1rem; }
+  .callout.info  { background: #42c8f510; border-left: 3px solid var(--accent2); }
+  .callout.warn  { background: #f5c84210; border-left: 3px solid var(--accent); }
+  .callout.danger{ background: #f5427810; border-left: 3px solid var(--accent3); }
+  .callout p { margin: 0; color: inherit; }
+
+  /* ── CÓDIGO ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin: 1rem 0 1.4rem;
+    overflow: hidden;
+    font-family: 'Space Mono', monospace;
+  }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .5rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: #111;
+  }
+  .code-header .filename {
+    font-size: .7rem;
+    letter-spacing: .08em;
+    color: var(--accent);
+  }
+  .code-header .lang {
+    font-size: .65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+  }
+  pre {
+    padding: 1.2rem 1.4rem;
+    overflow-x: auto;
+    font-size: .82rem;
+    line-height: 1.7;
+  }
+  code { font-family: 'Space Mono', monospace; }
+
+  /* Colorização manual de palavras-chave */
+  .kw  { color: #c792ea; }
+  .fn  { color: var(--accent2); }
+  .str { color: #c3e88d; }
+  .cm  { color: #546e7a; font-style: italic; }
+  .vr  { color: #f07178; }
+  .num { color: var(--accent); }
+  .tg  { color: #89ddff; }
+
+  /* ── FLUXO VISUAL ── */
+  .flow {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin: 1.2rem 0;
+  }
+  .flow-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: .5rem 1rem;
+    font-size: .82rem;
+    font-family: 'Space Mono', monospace;
+    color: var(--text);
+  }
+  .flow-arrow { color: var(--accent); font-size: 1.2rem; }
+
+  /* ── TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0 1.4rem;
+    font-size: .87rem;
+  }
+  th {
+    background: var(--surface);
+    color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    font-size: .7rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .6rem 1rem;
+    text-align: left;
+    border: 1px solid var(--border);
+  }
+  td {
+    padding: .6rem 1rem;
+    border: 1px solid var(--border);
+    color: #ccc;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #111; }
+
+  /* ── CRUD CARDS ── */
+  .crud-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin: 1.2rem 0;
+  }
+  .crud-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .crud-card .letter {
+    font-size: 2rem;
+    font-weight: 800;
+    display: block;
+    margin-bottom: .4rem;
+  }
+  .crud-card .op { font-weight: 600; font-size: .95rem; color: var(--text); }
+  .crud-card .sql { font-family: 'Space Mono', monospace; font-size: .72rem; color: var(--muted); margin-top: .3rem; }
+  .crud-card .file { font-size: .72rem; color: var(--accent2); margin-top: .2rem; font-family: 'Space Mono', monospace; }
+  .c-c .letter { color: #c3e88d; }
+  .c-r .letter { color: var(--accent2); }
+  .c-u .letter { color: var(--accent); }
+  .c-d .letter { color: var(--accent3); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: .8rem;
+    font-family: 'Space Mono', monospace;
+  }
+  footer span { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">Guia para Iniciantes</div>
+  <h1>PHP + MySQL<br><span>CRUD do Zero</span></h1>
+  <p>Entendendo cada arquivo do projeto, linha por linha.</p>
+</header>
+
+<div class="wrapper">
+
+  <nav class="toc">
+    <h2>📋 Índice</h2>
+    <ol>
+      <li><a href="#s0">O que é esse projeto?</a></li>
+      <li><a href="#s1">Conceitos básicos antes de começar</a></li>
+      <li><a href="#s2">banco.sql — Criando o banco de dados</a></li>
+      <li><a href="#s3">conexao.php — A ponte com o banco</a></li>
+      <li><a href="#s4">index.html — A tela principal</a></li>
+      <li><a href="#s5">cadastrar.php — Salvando dados (CREATE)</a></li>
+      <li><a href="#s6">listar.php — Exibindo dados (READ)</a></li>
+      <li><a href="#s7">editar.php — Formulário de edição</a></li>
+      <li><a href="#s8">atualizar.php — Salvando a edição (UPDATE)</a></li>
+      <li><a href="#s9">excluir.php — Apagando dados (DELETE)</a></li>
+      <li><a href="#s10">Alertas de segurança</a></li>
+      <li><a href="#s11">Como rodar o projeto</a></li>
+    </ol>
+  </nav>
+
+  <!-- ── 0 ── -->
+  <section id="s0">
+    <div class="section-label">Visão geral</div>
+    <h2><span class="num">00</span> O que é esse projeto?</h2>
+
+    <p>Este projeto é um <strong>CRUD</strong> — uma aplicação que faz as 4 operações fundamentais com dados:</p>
+
+    <div class="crud-grid">
+      <div class="crud-card c-c">
+        <span class="letter">C</span>
+        <div class="op">Create</div>
+        <div class="sql">INSERT</div>
+        <div class="file">cadastrar.php</div>
+      </div>
+      <div class="crud-card c-r">
+        <span class="letter">R</span>
+        <div class="op">Read</div>
+        <div class="sql">SELECT</div>
+        <div class="file">listar.php</div>
+      </div>
+      <div class="crud-card c-u">
+        <span class="letter">U</span>
+        <div class="op">Update</div>
+        <div class="sql">UPDATE</div>
+        <div class="file">atualizar.php</div>
+      </div>
+      <div class="crud-card c-d">
+        <span class="letter">D</span>
+        <div class="op">Delete</div>
+        <div class="sql">DELETE</div>
+        <div class="file">excluir.php</div>
+      </div>
+    </div>
+
+    <p>É o "Olá Mundo" do back-end. Quase todo sistema real (redes sociais, lojas, apps) é basicamente um CRUD gigante.</p>
+
+    <div class="callout info">
+      <span class="icon">💡</span>
+      <p>O projeto usa <strong>PHP</strong> (linguagem do servidor) + <strong>MySQL</strong> (banco de dados) + <strong>HTML</strong> (interface). Essa combinação roda no XAMPP, que instala tudo junto no seu computador.</p>
+    </div>
+  </section>
+
+  <!-- ── 1 ── -->
+  <section id="s1">
+    <div class="section-label">Fundamentos</div>
+    <h2><span class="num">01</span> Conceitos básicos antes de começar</h2>
+
+    <h3>O que é PHP?</h3>
+    <p>PHP é uma linguagem que roda <em>no servidor</em> (no computador que hospeda o site). O usuário nunca vê o código PHP — ele só vê o resultado em HTML. Todo código PHP fica entre as tags <code>&lt;?php</code> e <code>?&gt;</code>.</p>
+
+    <h3>O que é MySQL?</h3>
+    <p>MySQL é um banco de dados — pense nele como uma planilha do Excel, mas muito mais poderosa. Os dados ficam em <strong>tabelas</strong> com <strong>linhas</strong> (registros) e <strong>colunas</strong> (campos).</p>
+
+    <h3>O que é XAMPP?</h3>
+    <p>XAMPP é um programa que instala o Apache (servidor web) e o MySQL no seu computador, permitindo rodar PHP localmente, sem precisar de hospedagem.</p>
+
+    <h3>Variáveis em PHP</h3>
+    <p>Toda variável começa com <code>$</code>. É diferente de JavaScript ou Python.</p>
+    <div class="code-block">
+      <div class="code-header"><span class="filename">exemplo.php</span><span class="lang">PHP</span></div>
+      <pre><code><span class="vr">$nome</span> = <span class="str">"Maria"</span>;          <span class="cm">// string (texto)</span>
+<span class="vr">$idade</span> = <span class="num">20</span>;             <span class="cm">// número inteiro</span>
+<span class="kw">echo</span> <span class="vr">$nome</span>;              <span class="cm">// mostra "Maria" na tela</span></code></pre>
+    </div>
+
+    <h3>Como o formulário HTML envia dados para o PHP?</h3>
+    <div class="flow">
+      <div class="flow-step">Usuário preenche form</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">Clica em "Enviar"</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">HTML manda para action=""</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">PHP recebe com $_POST ou $_GET</div>
+    </div>
+
+    <table>
+      <tr><th>Método</th><th>Como funciona</th><th>Quando usar</th></tr>
+      <tr><td><code>POST</code></td><td>Dados viajam invisíveis no corpo da requisição</td><td>Cadastrar, editar (dados sensíveis)</td></tr>
+      <tr><td><code>GET</code></td><td>Dados aparecem na URL: <code>?id=5</code></td><td>Buscar, excluir (por ID)</td></tr>
+    </table>
+  </section>
+
+  <!-- ── 2 ── -->
+  <section id="s2">
+    <div class="section-label">banco.sql</div>
+    <h2><span class="num">02</span> banco.sql — Criando o banco de dados</h2>
+
+    <p>Esse arquivo contém os comandos SQL que criam o banco e a tabela. Você importa ele uma única vez no phpMyAdmin.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="filename">banco.sql</span><span class="lang">SQL</span></div>
+      <pre><code><span class="kw">CREATE DATABASE</span> crud_estudo;   <span class="cm">-- Cria um banco chamado "crud_estudo"</span>
+
+<span class="kw">USE</span> crud_estudo;               <span class="cm">-- Diz "use esse banco daqui pra frente"</span>
+
+<span class="kw">CREATE TABLE</span> usuarios(
+    id    <span class="fn">INT AUTO_INCREMENT PRIMARY KEY</span>,  <span class="cm">-- número único automático para cada linha</span>
+    campo1 <span class="fn">VARCHAR</span>(<span class="num">100</span>),                   <span class="cm">-- texto de até 100 caracteres</span>
+    campo2 <span class="fn">VARCHAR</span>(<span class="num">100</span>),
+    campo3 <span class="fn">VARCHAR</span>(<span class="num">100</span>)
+);</code></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">📌</span>
+      <p><strong>AUTO_INCREMENT</strong> significa que o MySQL cria automaticamente um número único para cada registro (1, 2, 3...). Você nunca precisa informar o ID manualmente. <strong>PRIMARY KEY</strong> significa que esse campo identifica cada linha de forma única — dois registros jamais terão o mesmo ID.</p>
+    </div>
+  </section>
+
+  <!-- ── 3 ── -->
+  <section id="s3">
+    <div class="section-label">conexao.php</div>
+    <h2><span class="num">03</span> conexao.php — A ponte com o banco</h2>
+
+    <p>Esse arquivo é o mais importante. Ele cria a conexão com o MySQL e é incluído em <em>todos</em> os outros arquivos PHP.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="filename">conexao.php</span><span class="lang">PHP</span></div>
+      <pre><code><span class="tg">&lt;?php</span>
+<span class="cm">// ↑ tag que abre o bloco PHP</span>
+
+<span class="vr">$conexao</span> = <span class="kw">new</span> <span class="fn">mysqli</span>(
+    <span class="str">"localhost"</span>,   <span class="cm">// endereço do servidor MySQL (seu próprio computador)</span>
+    <span class="str">"root"</span>,        <span class="cm">// usuário padrão do XAMPP</span>
+    <span class="str">""</span>,            <span class="cm">// senha (vazia por padrão no XAMPP)</span>
+    <span class="str">"crud_estudo"</span>  <span class="cm">// nome do banco que criamos no banco.sql</span>
+);
+
+<span class="cm">// Verifica se deu erro na conexão:</span>
+<span class="kw">if</span>(<span class="vr">$conexao</span>-&gt;connect_error){
+    <span class="fn">die</span>(<span class="str">"Erro na conexão"</span>);  <span class="cm">// die() para tudo e mostra a mensagem</span>
+}
+<span class="tg">?&gt;</span></code></pre>
+    </div>
+
+    <h3>Por que incluir em todos os arquivos?</h3>
+    <p>Usando <code>include "conexao.php"</code> no início de cada arquivo PHP, você não precisa repetir esse código. Se um dia precisar mudar a senha ou o nome do banco, altera só nesse arquivo.</p>
+
+    <div class="callout warn">
+      <span class="icon">⚡</span>
+      <p><strong><code>$conexao-&gt;algo</code></strong> — o símbolo <code>-&gt;</code> em PHP é como o ponto em outras linguagens. Significa "acesse a propriedade ou método do objeto". Aqui, <code>$conexao</code> é um objeto da classe <code>mysqli</code>.</p>
+    </div>
+  </section>
+
+  <!-- ── 4 ── -->
+  <section id="s4">
+    <div class="section-label">index.html</div>
+    <h2><span class="num">04</span> index.html — A tela principal</h2>
+
+    <p>É a única página em HTML puro (sem PHP). Contém o formulário de cadastro e um link para listar os registros.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="filename">index.html (trecho relevante)</span><span class="lang">HTML</span></div>
+      <pre><code><span class="cm">&lt;!-- action diz PARA ONDE os dados vão quando o form é enviado --&gt;</span>
+<span class="cm">&lt;!-- method="POST" significa que os dados não aparecem na URL   --&gt;</span>
+<span class="tg">&lt;form</span> <span class="fn">action</span>=<span class="str">"cadastrar.php"</span> <span class="fn">method</span>=<span class="str">"POST"</span><span class="tg">&gt;</span>
+
+    <span class="cm">&lt;!-- name="campo1" é o nome que o PHP vai usar para pegar o valor --&gt;</span>
+    <span class="tg">&lt;input</span> <span class="fn">type</span>=<span class="str">"text"</span> <span class="fn">name</span>=<span class="str">"campo1"</span> <span class="fn">placeholder</span>=<span class="str">"campo1"</span> <span class="fn">required</span><span class="tg">&gt;</span>
+    <span class="tg">&lt;input</span> <span class="fn">type</span>=<span class="str">"text"</span> <span class="fn">name</span>=<span class="str">"campo2"</span> <span class="fn">placeholder</span>=<span class="str">"campo2"</span> <span class="fn">required</span><span class="tg">&gt;</span>
+    <span class="tg">&lt;input</span> <span class="fn">type</span>=<span class="str">"text"</span> <span class="fn">name</span>=<span class="str">"campo3"</span> <span class="fn">placeholder</span>=<span class="str">"campo3"</span> <span class="fn">required</span><span class="tg">&gt;</span>
+
+    <span class="tg">&lt;button</span> <span class="fn">type</span>=<span class="str">"submit"</span><span class="tg">&gt;</span>Cadastrar<span class="tg">&lt;/button&gt;</span>
+<span class="tg">&lt;/form&gt;</span></code></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">💡</span>
+      <p>O atributo <code>name</code> do input é fundamental. É ele que o PHP usa para recuperar o valor: <code>$_POST['campo1']</code>. Se o <code>name</code> for diferente, o PHP não acha o dado.</p>
+    </div>
+  </section>
+
+  <!-- ── 5 ── -->
+  <section id="s5">
+    <div class="section-label">cadastrar.php</div>
+    <h2><span class="num">05</span> cadastrar.php — Salvando dados (CREATE)</h2>
+
+    <p>Recebe os dados do formulário via <code>$_POST</code> e os insere no banco com <code>INSERT INTO</code>.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="filename">cadastrar.php</span><span class="lang">PHP</span></div>
+      <pre><code><span class="tg">&lt;?php</span>
+
+<span class="kw">include</span> <span class="str">"conexao.php"</span>;  <span class="cm">// importa a conexão com o banco</span>
+
+<span class="cm">// $_POST['campo1'] = o que o usuário digitou no input name="campo1"</span>
+<span class="vr">$campo1</span> = <span class="vr">$_POST</span>[<span class="str">'campo1'</span>];
+<span class="vr">$campo2</span> = <span class="vr">$_POST</span>[<span class="str">'campo2'</span>];
+<span class="vr">$campo3</span> = <span class="vr">$_POST</span>[<span class="str">'campo3'</span>];
+
+<span class="cm">// Monta o comando SQL para inserir um novo registro na tabela</span>
+<span class="vr">$sql</span> = <span class="str">"INSERT INTO usuarios(campo1, campo2, campo3)
+         VALUES('$campo1', '$campo2', '$campo3')"</span>;
+
+<span class="cm">// Envia o comando para o MySQL e verifica se funcionou</span>
+<span class="kw">if</span>(<span class="vr">$conexao</span>-&gt;<span class="fn">query</span>(<span class="vr">$sql</span>)){
+    <span class="kw">echo</span> <span class="str">"Cadastro realizado!"</span>;
+}<span class="kw">else</span>{
+    <span class="kw">echo</span> <span class="str">"Erro ao cadastrar"</span>;
+}
+
+<span class="tg">?&gt;</span></code></pre>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">Form enviado</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">$_POST recebe os dados</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">SQL é montado</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">query() executa no MySQL</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">Sucesso ou erro</div>
+    </div>
+  </section>
+
+  <!-- ── 6 ── -->
+  <section id="s6">
+    <div class="section-label">listar.php</div>
+    <h2><span class="num">06</span> listar.php — Exibindo dados (READ)</h2>
+
+    <p>Busca todos os registros do banco e os exibe na tela, um por um, com links para editar e excluir.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="filename">listar.php</span><span class="lang">PHP</span></div>
+      <pre><code><span class="tg">&lt;?php</span>
+
+<span class="kw">include</span> <span class="str">"conexao.php"</span>;
+
+<span class="cm">// SELECT * = "pegue TUDO" FROM usuarios = "da tabela usuarios"</span>
+<span class="vr">$sql</span>       = <span class="str">"SELECT * FROM usuarios"</span>;
+<span class="vr">$resultado</span> = <span class="vr">$conexao</span>-&gt;<span class="fn">query</span>(<span class="vr">$sql</span>);  <span class="cm">// executa e guarda o resultado</span>
+
+<span class="cm">// fetch_assoc() pega uma linha do resultado como um array associativo</span>
+<span class="cm">// O while continua enquanto houver linhas para ler</span>
+<span class="kw">while</span>(<span class="vr">$dados</span> = <span class="vr">$resultado</span>-&gt;<span class="fn">fetch_assoc</span>()){
+
+    <span class="kw">echo</span> <span class="str">"ID: "</span>      . <span class="vr">$dados</span>[<span class="str">'id'</span>]     . <span class="str">"&lt;br&gt;"</span>;
+    <span class="kw">echo</span> <span class="str">"Campo 1: "</span> . <span class="vr">$dados</span>[<span class="str">'campo1'</span>] . <span class="str">"&lt;br&gt;"</span>;
+    <span class="kw">echo</span> <span class="str">"Campo 2: "</span> . <span class="vr">$dados</span>[<span class="str">'campo2'</span>] . <span class="str">"&lt;br&gt;"</span>;
+    <span class="kw">echo</span> <span class="str">"Campo 3: "</span> . <span class="vr">$dados</span>[<span class="str">'campo3'</span>] . <span class="str">"&lt;br&gt;"</span>;
+
+    <span class="cm">// Link para excluir: passa o ID do registro na URL (?id=X)</span>
+    <span class="kw">echo</span> <span class="str">"&lt;a href='excluir.php?id="</span> . <span class="vr">$dados</span>[<span class="str">'id'</span>] . <span class="str">"'&gt;Excluir&lt;/a&gt;"</span>;
+
+    <span class="cm">// Link para editar: também passa o ID na URL</span>
+    <span class="kw">echo</span> <span class="str">"&lt;a href='editar.php?id="</span>   . <span class="vr">$dados</span>[<span class="str">'id'</span>] . <span class="str">"'&gt;Editar&lt;/a&gt;&lt;br&gt;"</span>;
+
+    <span class="kw">echo</span> <span class="str">"&lt;hr&gt;"</span>;  <span class="cm">// linha separadora entre registros</span>
+}
+
+<span class="tg">?&gt;</span></code></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">💡</span>
+      <p><strong>O ponto <code>.</code> em PHP concatena (junta) strings.</strong> <code>"Olá " . "mundo"</code> resulta em <code>"Olá mundo"</code>. Isso é diferente de JavaScript, onde se usa <code>+</code>, ou Python, onde também se usa <code>+</code>.</p>
+    </div>
+  </section>
+
+  <!-- ── 7 ── -->
+  <section id="s7">
+    <div class="section-label">editar.php</div>
+    <h2><span class="num">07</span> editar.php — Formulário de edição</h2>
+
+    <p>Recebe o <code>id</code> pela URL, busca os dados atuais no banco e preenche um formulário para o usuário editar.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="filename">editar.php</span><span class="lang">PHP + HTML</span></div>
+      <pre><code><span class="tg">&lt;?php</span>
+
+<span class="kw">include</span> <span class="str">"conexao.php"</span>;
+
+<span class="cm">// $_GET['id'] pega o valor "id" que veio na URL: editar.php?id=5</span>
+<span class="vr">$id</span>        = <span class="vr">$_GET</span>[<span class="str">'id'</span>];
+
+<span class="vr">$sql</span>       = <span class="str">"SELECT * FROM usuarios WHERE id = $id"</span>; <span class="cm">// busca só esse registro</span>
+<span class="vr">$resultado</span> = <span class="vr">$conexao</span>-&gt;<span class="fn">query</span>(<span class="vr">$sql</span>);
+<span class="vr">$dados</span>     = <span class="vr">$resultado</span>-&gt;<span class="fn">fetch_assoc</span>();  <span class="cm">// pega a linha (só 1 aqui)</span>
+
+<span class="tg">?&gt;</span>
+
+<span class="cm">&lt;!-- O PHP fechou, agora vem HTML normal + PHP embutido nos values --&gt;</span>
+<span class="tg">&lt;form</span> <span class="fn">action</span>=<span class="str">"atualizar.php"</span> <span class="fn">method</span>=<span class="str">"POST"</span><span class="tg">&gt;</span>
+
+    <span class="cm">&lt;!-- Campo oculto: carrega o ID sem aparecer na tela --&gt;</span>
+    <span class="tg">&lt;input</span> <span class="fn">type</span>=<span class="str">"hidden"</span> <span class="fn">name</span>=<span class="str">"id"</span>
+           <span class="fn">value</span>=<span class="str">"&lt;?php echo $dados['id']; ?&gt;"</span><span class="tg">&gt;</span>
+
+    Campo 1:
+    <span class="tg">&lt;input</span> <span class="fn">type</span>=<span class="str">"text"</span> <span class="fn">name</span>=<span class="str">"campo1"</span>
+           <span class="fn">value</span>=<span class="str">"&lt;?php echo $dados['campo1']; ?&gt;"</span><span class="tg">&gt;</span>
+
+    Campo 2:
+    <span class="tg">&lt;input</span> <span class="fn">type</span>=<span class="str">"text"</span> <span class="fn">name</span>=<span class="str">"campo2"</span>
+           <span class="fn">value</span>=<span class="str">"&lt;?php echo $dados['campo2']; ?&gt;"</span><span class="tg">&gt;</span>
+
+    Campo 3:
+    <span class="tg">&lt;input</span> <span class="fn">type</span>=<span class="str">"text"</span> <span class="fn">name</span>=<span class="str">"campo3"</span>
+           <span class="fn">value</span>=<span class="str">"&lt;?php echo $dados['campo3']; ?&gt;"</span><span class="tg">&gt;</span>
+
+    <span class="tg">&lt;button</span> <span class="fn">type</span>=<span class="str">"submit"</span><span class="tg">&gt;</span>Salvar<span class="tg">&lt;/button&gt;</span>
+<span class="tg">&lt;/form&gt;</span></code></pre>
+    </div>
+
+    <div class="callout info">
+      <span class="icon">💡</span>
+      <p>O <code>type="hidden"</code> guarda o ID do registro no formulário sem exibir ao usuário. É necessário para que o <code>atualizar.php</code> saiba qual linha do banco deve ser alterada.</p>
+    </div>
+  </section>
+
+  <!-- ── 8 ── -->
+  <section id="s8">
+    <div class="section-label">atualizar.php</div>
+    <h2><span class="num">08</span> atualizar.php — Salvando a edição (UPDATE)</h2>
+
+    <p>Recebe os dados editados pelo formulário do <code>editar.php</code> e atualiza o registro no banco.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="filename">atualizar.php</span><span class="lang">PHP</span></div>
+      <pre><code><span class="tg">&lt;?php</span>
+
+<span class="kw">include</span> <span class="str">"conexao.php"</span>;
+
+<span class="vr">$id</span>     = <span class="vr">$_POST</span>[<span class="str">'id'</span>];      <span class="cm">// pega o ID que veio do campo hidden</span>
+<span class="vr">$campo1</span> = <span class="vr">$_POST</span>[<span class="str">'campo1'</span>];
+<span class="vr">$campo2</span> = <span class="vr">$_POST</span>[<span class="str">'campo2'</span>];
+<span class="vr">$campo3</span> = <span class="vr">$_POST</span>[<span class="str">'campo3'</span>];
+
+<span class="cm">// UPDATE: atualiza registros existentes</span>
+<span class="cm">// SET: define quais colunas mudam e para qual valor</span>
+<span class="cm">// WHERE: limita a atualização só ao registro com esse ID</span>
+<span class="vr">$sql</span> = <span class="str">"UPDATE usuarios
+         SET campo1 = '$campo1',
+             campo2 = '$campo2',
+             campo3 = '$campo3'
+         WHERE id = $id"</span>;
+
+<span class="kw">if</span>(<span class="vr">$conexao</span>-&gt;<span class="fn">query</span>(<span class="vr">$sql</span>)){
+    <span class="kw">echo</span> <span class="str">"Registro atualizado!"</span>;
+}<span class="kw">else</span>{
+    <span class="kw">echo</span> <span class="str">"Erro ao atualizar."</span>;
+}
+
+<span class="tg">?&gt;</span></code></pre>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚠️</span>
+      <p>O <code>WHERE id = $id</code> é <strong>crítico</strong>. Sem ele, o UPDATE atualizaria <em>todos</em> os registros da tabela de uma vez. Sempre use WHERE ao atualizar ou excluir.</p>
+    </div>
+  </section>
+
+  <!-- ── 9 ── -->
+  <section id="s9">
+    <div class="section-label">excluir.php</div>
+    <h2><span class="num">09</span> excluir.php — Apagando dados (DELETE)</h2>
+
+    <p>Recebe o ID pela URL e remove o registro correspondente do banco.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span class="filename">excluir.php</span><span class="lang">PHP</span></div>
+      <pre><code><span class="tg">&lt;?php</span>
+
+<span class="kw">include</span> <span class="str">"conexao.php"</span>;
+
+<span class="vr">$id</span>  = <span class="vr">$_GET</span>[<span class="str">'id'</span>];   <span class="cm">// pega o ID da URL: excluir.php?id=3</span>
+
+<span class="cm">// DELETE FROM: exclui da tabela o registro com esse ID específico</span>
+<span class="vr">$sql</span> = <span class="str">"DELETE FROM usuarios WHERE id = $id"</span>;
+
+<span class="kw">if</span>(<span class="vr">$conexao</span>-&gt;<span class="fn">query</span>(<span class="vr">$sql</span>)){
+    <span class="kw">echo</span> <span class="str">"Registro excluído!"</span>;
+}<span class="kw">else</span>{
+    <span class="kw">echo</span> <span class="str">"Erro ao excluir"</span>;
+}
+
+<span class="tg">?&gt;</span></code></pre>
+    </div>
+  </section>
+
+  <!-- ── 10 ── -->
+  <section id="s10">
+    <div class="section-label">Segurança</div>
+    <h2><span class="num">10</span> Alertas de segurança</h2>
+
+    <p>Este projeto é ótimo para aprendizado, mas tem vulnerabilidades sérias para uso em produção (internet real). São importantes de conhecer:</p>
+
+    <div class="callout danger">
+      <span class="icon">🚨</span>
+      <p><strong>SQL Injection:</strong> O código insere variáveis diretamente no SQL (<code>"WHERE id = $id"</code>). Um atacante pode digitar código SQL no lugar de um valor normal e destruir ou vazar o banco. A solução é usar <strong>Prepared Statements</strong> (próximo passo nos seus estudos).</p>
+    </div>
+
+    <div class="callout danger">
+      <span class="icon">🚨</span>
+      <p><strong>XSS (Cross-Site Scripting):</strong> Dados do usuário são exibidos sem filtragem. Alguém pode salvar <code>&lt;script&gt;alert('hackeado')&lt;/script&gt;</code> como valor. Use <code>htmlspecialchars($variavel)</code> ao exibir dados do banco na tela.</p>
+    </div>
+
+    <div class="callout warn">
+      <span class="icon">⚡</span>
+      <p>Para estudos locais com XAMPP, essas vulnerabilidades não são problema. Elas só importam quando o sistema for para a internet. O objetivo agora é entender a lógica do CRUD!</p>
+    </div>
+  </section>
+
+  <!-- ── 11 ── -->
+  <section id="s11">
+    <div class="section-label">Setup</div>
+    <h2><span class="num">11</span> Como rodar o projeto</h2>
+
+    <table>
+      <tr><th>Passo</th><th>O que fazer</th></tr>
+      <tr><td>1</td><td>Instale o <strong>XAMPP</strong> (xampp.apachefriends.org)</td></tr>
+      <tr><td>2</td><td>Abra o XAMPP Control Panel e inicie <strong>Apache</strong> e <strong>MySQL</strong></td></tr>
+      <tr><td>3</td><td>Acesse <code>http://localhost/phpmyadmin</code> no navegador</td></tr>
+      <tr><td>4</td><td>Clique em <strong>Importar</strong> e selecione o arquivo <code>banco.sql</code></td></tr>
+      <tr><td>5</td><td>Copie a pasta <code>Estudo</code> para <code>C:\xampp\htdocs\</code></td></tr>
+      <tr><td>6</td><td>Acesse <code>http://localhost/Estudo/index.html</code> no navegador</td></tr>
+    </table>
+
+    <div class="callout info">
+      <span class="icon">💡</span>
+      <p>O <code>htdocs</code> é a pasta raiz do servidor local. Qualquer pasta que você colocar lá fica acessível via <code>http://localhost/nome-da-pasta/</code>.</p>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Gerado com base no projeto <span>Estudo.zip</span> — PHP + MySQL + CRUD Básico
+</footer>
+
+</body>
+</html>
